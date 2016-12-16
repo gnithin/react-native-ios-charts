@@ -113,6 +113,61 @@ var styles = StyleSheet.create({
 - [ ] Support for all chart properties
 - [ ] Documentation
 
+## Updates - 
+MarkerViews are added for line charts and piecharts.
+
+All the available values are enlisted here - 
+
+For `Linechart`-  Add the following dict at the root level of the config.
+```
+  'marker': {
+    'xOffset': 170,
+    'yOffset': 80,
+    'backgroundColor': '#AA000000',
+    'textStructure': " $ {} ",
+    'textColor': '#FFFFFF',
+    'height': 100,
+    'padding': 20,
+    'textSize': 13,
+    'borderRadius': 30,
+    'setBold': true,
+    'setItalics': true
+  }
+
+```
+
+For Pie chart - Add the following dict at root level of the config.
+```
+  'marker': {
+    'backgroundColor': '#CC000000',
+    'textStructure': " $ {} ",
+    'textColor': '#FFFFFF',
+    'height': 150,
+    'angularOffset': 220,  # This is for offsetting in the same angle as the slice
+    'padding': 50,
+    'textSize': 13,
+    'borderRadius': 30,
+    # This applies to only system font. Use "font" for field for using custom fonts as show here - http://stackoverflow.com/a/14019467/1518924
+    'setBold': true,      
+    'setItalics': true
+  },
+
+```
+PS: Make sure the `highlightingEnabled` field is set to true.
+
+### Update 2
+Gradients can be defined for the background fill in the `Linecharts`.
+This key needs to be added to `datasets[0].config` (It takes precedence over `fillColor`)
+```
+  fillGradient: {
+    angle: '90',
+    startColor: '#1200FF',
+    endColor: '#FFFFFF'
+  }
+```
+`angle` follows the convention mentioned [here](https://developer.apple.com/reference/appkit/nsgradient/1529086-draw)
+
+
 # License
 The MIT License (MIT)
 

@@ -48,6 +48,11 @@ LineChart.propTypes = {
       drawVerticalHighlightIndicator: React.PropTypes.bool,
       fillAlpha: React.PropTypes.number,
       fillColor: React.PropTypes.string,
+      fillGradient: React.PropTypes.shape({
+        angle: React.PropTypes.string,
+        startColor: React.PropTypes.string,
+        endColor: React.PropTypes.string
+      }),
       highlightColor: React.PropTypes.string,
       highlightLineDashLengths: React.PropTypes.number,
       highlightLineDashPhase: React.PropTypes.number,

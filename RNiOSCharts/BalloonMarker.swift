@@ -23,95 +23,161 @@ public class BalloonMarker: ChartMarker
     public var textColor: UIColor?
     public var insets = UIEdgeInsets()
     public var minimumSize = CGSize()
-    
+
     private var labelns: NSString?
     private var _labelSize: CGSize = CGSize()
     private var _size: CGSize = CGSize()
     private var _paragraphStyle: NSMutableParagraphStyle?
     private var _drawAttributes = [String : AnyObject]()
+    private var paddingVal : CGFloat = 0.0
+    private var xoffset: CGFloat = 0.0
+    private var yoffset: CGFloat = 0.0
+    private var angularOffset: CGFloat?
+    private var textStructure: String = "{}"
+    private var borderRadius: CGFloat = 0.0
     
-    public init(color: UIColor, font: UIFont, textColor: UIColor, insets: UIEdgeInsets)
-    {
+    private var xOffset: CGFloat = 0.0;
+    private var yOffset: CGFloat = 0.0;
+    
+    public init(
+        color: UIColor,
+        font: UIFont,
+        textColor: UIColor
+    ) {
         super.init()
         
         self.color = color
         self.font = font
         self.textColor = textColor
-        self.insets = insets
+        self.setInsets();
         
-        _paragraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as? NSMutableParagraphStyle
-        _paragraphStyle?.alignment = .Center
+        _paragraphStyle = NSParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
+        _paragraphStyle?.alignment = .center
     }
     
     public override var size: CGSize { return _size; }
     
-    public override func draw(context context: CGContext, point: CGPoint)
+    public override func draw(context: CGContext, point: CGPoint)
     {
-        if (labelns == nil)
-        {
-            return
+        if labelns == nil { return }
+        
+        var updatedPoint = CGPoint(x: point.x, y: point.y)
+        
+        if self.angularOffset != nil{
+            var posy: CGFloat = point.y
+            var posx: CGFloat = point.x
+            
+            let scale :CGFloat = UIScreen.main.scale
+
+            // This is needed since context.height is in pixels
+            let height: CGFloat = CGFloat(context.height)/scale
+            let width: CGFloat = CGFloat(context.width)/scale
+            
+            let midX: CGFloat = width/(2)
+            let midY: CGFloat = height/(2)
+            
+            let offset: CGFloat = self.angularOffset!
+            let ydiff: CGFloat = posy - midY
+            let xdiff: CGFloat = posx - midX
+            
+            let slope: CGFloat = atan2(ydiff, xdiff)
+            
+            posx += offset * cos(slope)
+            posy += offset * sin(slope)
+            
+            updatedPoint = CGPoint(x: posx, y: posy)
+        }else{
+            updatedPoint = CGPoint(
+                x: point.x + self.xOffset,
+                y: point.y + self.yOffset
+            )
         }
         
-        var rect = CGRect(origin: point, size: _size)
-        rect.origin.x -= _size.width / 2.0
+        // This the draws the view at the point.
+        var rect = CGRect(origin: updatedPoint, size: _size);
+        rect.origin.x -= _size.width/2.0
         rect.origin.y -= _size.height
         
-        CGContextSaveGState(context)
+        context.saveGState()
         
-        CGContextSetFillColorWithColor(context, color?.CGColor)
-        CGContextBeginPath(context)
-        CGContextMoveToPoint(context,
-            rect.origin.x,
-            rect.origin.y)
-        CGContextAddLineToPoint(context,
-            rect.origin.x + rect.size.width,
-            rect.origin.y)
-        CGContextAddLineToPoint(context,
-            rect.origin.x + rect.size.width,
-            rect.origin.y + rect.size.height - arrowSize.height)
-        CGContextAddLineToPoint(context,
-            rect.origin.x + (rect.size.width + arrowSize.width) / 2.0,
-            rect.origin.y + rect.size.height - arrowSize.height)
-        CGContextAddLineToPoint(context,
-            rect.origin.x + rect.size.width / 2.0,
-            rect.origin.y + rect.size.height)
-        CGContextAddLineToPoint(context,
-            rect.origin.x + (rect.size.width - arrowSize.width) / 2.0,
-            rect.origin.y + rect.size.height - arrowSize.height)
-        CGContextAddLineToPoint(context,
-            rect.origin.x,
-            rect.origin.y + rect.size.height - arrowSize.height)
-        CGContextAddLineToPoint(context,
-            rect.origin.x,
-            rect.origin.y)
-        CGContextFillPath(context)
+        context.setFillColor((color?.cgColor)!)
+        context.beginPath()
         
+        context.move(to: CGPoint.init(x: rect.origin.x,
+                                      y: rect.origin.y));
+        
+        (UIBezierPath.init(roundedRect: rect, cornerRadius: self.borderRadius)).fill()
+        
+        context.fillPath()
+        
+        rect.origin.x += self.insets.left
         rect.origin.y += self.insets.top
-        rect.size.height -= self.insets.top + self.insets.bottom
         
         UIGraphicsPushContext(context)
         
-        labelns?.drawInRect(rect, withAttributes: _drawAttributes)
+        labelns?.draw(in: rect, withAttributes: _drawAttributes)
         
         UIGraphicsPopContext()
         
-        CGContextRestoreGState(context)
+        context.restoreGState()
     }
     
-    public override func refreshContent(entry entry: ChartDataEntry, highlight: ChartHighlight)
+    public override func refreshContent(entry: ChartDataEntry, highlight: ChartHighlight)
     {
-        let label = entry.value.description
+        var label = entry.value.description
+        label = self.textStructure.replacingOccurrences(of: "{}", with: label)
+        
         labelns = label as NSString
-        
+      
         _drawAttributes.removeAll()
-        _drawAttributes[NSFontAttributeName] = self.font
-        _drawAttributes[NSParagraphStyleAttributeName] = _paragraphStyle
         _drawAttributes[NSForegroundColorAttributeName] = self.textColor
+        _drawAttributes[NSFontAttributeName] = self.font
         
-        _labelSize = labelns?.sizeWithAttributes(_drawAttributes) ?? CGSizeZero
+        _labelSize = labelns!.size(attributes: _drawAttributes);
         _size.width = _labelSize.width + self.insets.left + self.insets.right
         _size.height = _labelSize.height + self.insets.top + self.insets.bottom
         _size.width = max(minimumSize.width, _size.width)
         _size.height = max(minimumSize.height, _size.height)
+    }
+    
+    private func setInsets(){
+        self.insets = UIEdgeInsetsMake(self.paddingVal, self.paddingVal, self.paddingVal, self.paddingVal);
+    }
+    
+    public func setXOffset(xOffset: CGFloat){
+        self.xOffset = xOffset;
+    }
+    
+    public func setYOffset(yOffset: CGFloat){
+        self.yOffset = yOffset;
+    }
+    
+    public func setPadding(paddingVal : CGFloat){
+        self.paddingVal = paddingVal;
+        setInsets();
+    }
+    
+    public func setTextStructure(textStructure: String){
+        self.textStructure = textStructure
+    }
+    
+    public func setColor(color: UIColor){
+        self.color = color
+    }
+    
+    public func setFont(font: UIFont){
+        self.font = font
+    }
+    
+    public func setTextColor(textColor: UIColor){
+        self.textColor = textColor
+    }
+    
+    public func setAngularOffset(angOff: CGFloat){
+        self.angularOffset = angOff;
+    }
+    
+    public func setBorderRadius(borderRadius: CGFloat){
+        self.borderRadius = borderRadius;
     }
 }

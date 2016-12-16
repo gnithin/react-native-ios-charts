@@ -32,7 +32,27 @@ class RNPieChart : PieChartView {
     if let data = config.data(using: String.Encoding.utf8) {
       json = JSON(data: data);
     };
-
+    
+    /*
+     There is no conceivable way to figure out the type of the chart while drawing the
+     markerView (i.e without modifying the charts library). 
+     Since angularOffset is a specific property of a piechart, it needs to be added to the 
+     current markerView already set from the extension.
+     
+     So this basically adds that extra property.
+    */
+    if(
+      self.drawMarkers &&
+      json["marker"].exists() &&
+      json["marker"]["angularOffset"].exists() &&
+      self.marker != nil
+    ) {
+      let markerObj = json["marker"]
+      
+      let angOff: CGFloat = CGFloat(markerObj["angularOffset"].floatValue)
+      (self.marker as! BalloonMarker).setAngularOffset(angOff: angOff);
+    }
+    
     if json["holeColor"].exists() {
       self.holeColor = RCTConvert.uiColor(json["holeColor"].intValue);
     }
@@ -73,9 +93,7 @@ class RNPieChart : PieChartView {
       self.maxAngle = CGFloat(json["maxAngle"].floatValue);
     }
     
-    if json["labels"].exists() {
-      labels = json["labels"].arrayValue.map({$0.stringValue});
-    }
+    var totalValuesCount:Int = 0;
     
     if json["dataSets"].exists() {
       let dataSets = json["dataSets"].arrayObject;
@@ -88,10 +106,15 @@ class RNPieChart : PieChartView {
           let values = tmp["values"].arrayValue.map({$0.doubleValue});
           let label = tmp["label"].exists() ? tmp["label"].stringValue : "";
           var dataEntries: [ChartDataEntry] = [];
+          let valuesCount = values.count
           
-          for i in 0..<values.count {
+          for i in 0..<valuesCount {
             let dataEntry = ChartDataEntry(value: values[i], xIndex: i);
             dataEntries.append(dataEntry);
+          }
+            
+          if valuesCount > totalValuesCount{
+            totalValuesCount = valuesCount
           }
           
           let dataSet = PieChartDataSet(yVals: dataEntries, label: label);
@@ -204,6 +227,23 @@ class RNPieChart : PieChartView {
           
           sets.append(dataSet);
         }
+      }
+      
+      if json["labels"].exists() {
+          labels = json["labels"].arrayValue.map({$0.stringValue});
+      }
+      
+      /*
+       This is for basically handling the cases when there are no labels given for
+       a pie chart. This is needed because the markerView's whole logic is based off of
+       the labels which it uses.
+       */
+      let labelsCount:Int = labels.count
+      let valDiff:Int = totalValuesCount - labelsCount
+      if valDiff > 0 {
+          for _ in 0..<valDiff{
+              labels.append("")
+          }
       }
       
       let chartData = PieChartData(xVals: labels, dataSets: sets);

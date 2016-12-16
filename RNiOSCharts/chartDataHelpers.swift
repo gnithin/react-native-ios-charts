@@ -93,8 +93,40 @@ func getLineData(_ labels: [String], json: JSON!) -> LineChartData {
             if tmp["fillAlpha"].exists() {
                 dataSet.fillAlpha = CGFloat(tmp["fillAlpha"].floatValue);
             }
-
-            if tmp["fillColor"].exists() {
+          
+            var isGradientSet: Bool = false;
+            
+            if tmp["fillGradient"].exists() {
+                let fillGradientObj = tmp["fillGradient"];
+                
+                var angle: CGFloat = 0;
+                if fillGradientObj["angle"].exists() {
+                    angle = CGFloat(Int(fillGradientObj["angle"].stringValue)!);
+                }
+                
+                if (fillGradientObj["endColor"].exists() &&
+                    fillGradientObj["startColor"].exists()) {
+                    let startColorStr = fillGradientObj["startColor"].stringValue;
+                    let endColorStr = fillGradientObj["endColor"].stringValue;
+                    
+                    // This understands alpha values as well.
+                    let startColorVal = ChartColorTemplates.colorFromString(startColorStr).cgColor;
+                    let endColorVal = ChartColorTemplates.colorFromString(endColorStr).cgColor;
+                    
+                    let colors = [startColorVal, endColorVal] as CFArray;
+                    
+                    let gradient: CGGradient = CGGradient(
+                        colorsSpace: nil,
+                        colors: colors,
+                        locations: nil
+                        )!;
+                    
+                    dataSet.fill = ChartFill.fillWithLinearGradient(gradient, angle: angle);
+                    isGradientSet = true;
+                }
+            }
+            
+            if !isGradientSet && tmp["fillColor"].exists() {
                 dataSet.fillColor = RCTConvert.uiColor(tmp["fillColor"].intValue);
             }
 

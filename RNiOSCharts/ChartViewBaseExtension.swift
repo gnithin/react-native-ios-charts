@@ -10,8 +10,124 @@
 import SwiftyJSON
 import Charts
 
-extension ChartViewBase {
+// Setting some defaults here
+let DEFAULT_MARKER_FONT_SIZE:CGFloat = 12.0
+let DEFAULT_MARKER_BG_COLOR: String = "#000000"
+let DEFAULT_MARKER_TEXT_COLOR: String = "#FFFFFF"
 
+extension ChartViewBase {
+    func setMarkerViewProps(json:JSON){
+        let isMarkerPropExists = json["marker"].exists()
+        
+        if json["drawMarkers"].exists() {
+            self.drawMarkers = json["drawMarkers"].boolValue;
+        } else if isMarkerPropExists {
+            self.drawMarkers = true
+        }
+        
+        if self.drawMarkers{
+            var markerFontSize: CGFloat = DEFAULT_MARKER_FONT_SIZE
+            var markerFont = UIFont.systemFont(ofSize: markerFontSize);
+            
+            var bgColor = UIColor(
+                cgColor: ChartColorTemplates.colorFromString(DEFAULT_MARKER_BG_COLOR).cgColor
+            );
+            
+            var textColor = UIColor(
+                cgColor: ChartColorTemplates.colorFromString(DEFAULT_MARKER_TEXT_COLOR).cgColor
+            );
+            
+            let markerView : BalloonMarker = BalloonMarker(
+                color: bgColor,
+                font: markerFont,
+                textColor: textColor
+            )
+            
+            if isMarkerPropExists {
+                var markerObj = json["marker"];
+                
+                var fontChanged = false
+                
+                if markerObj["textSize"].exists() {
+                    markerFontSize = CGFloat(markerObj["textSize"].floatValue);
+                    fontChanged = true
+                }
+                
+                if markerObj["setBold"].exists() {
+                    let setBold = markerObj["setBold"].boolValue
+                    if setBold{
+                        markerFont = UIFont.boldSystemFont(ofSize: markerFontSize);
+                        fontChanged = true
+                    }
+                } else if markerObj["setItalics"].exists() {
+                    let setItalics = markerObj["setItalics"].boolValue
+                    if setItalics{
+                        markerFont = UIFont.italicSystemFont(ofSize: markerFontSize)
+                        fontChanged = true
+                    }
+                }
+                
+                if markerObj["font"].exists() {
+                    let fontValue = markerObj["font"].stringValue
+                    markerFont = UIFont(
+                        name: fontValue,
+                        size: markerFontSize
+                        )!;
+                    fontChanged = true
+                }
+                
+                if fontChanged {
+                    markerView.setFont(font: markerFont);
+                }
+                
+                if markerObj["backgroundColor"].exists(){
+                    let bgColorStr = markerObj["backgroundColor"].stringValue;
+                    bgColor = UIColor(cgColor: ChartColorTemplates.colorFromString(bgColorStr).cgColor);
+                    
+                    markerView.setColor(color: bgColor);
+                }
+                
+                if markerObj["textColor"].exists(){
+                    let textColorStr = markerObj["textColor"].stringValue;
+                    textColor = UIColor(cgColor: ChartColorTemplates.colorFromString(textColorStr).cgColor);
+                    
+                    markerView.setTextColor(textColor: textColor);
+                }
+                
+                if markerObj["padding"].exists(){
+                    markerView.setPadding(paddingVal: CGFloat(markerObj["padding"].floatValue))
+                }
+                
+                if markerObj["xOffset"].exists(){
+                    let xoffset = (CGFloat)(markerObj["xOffset"].intValue)
+                    markerView.setXOffset(xOffset: xoffset);
+                }
+                
+                if markerObj["yOffset"].exists(){
+                    let yoffset = (CGFloat)(markerObj["yOffset"].intValue)
+                    markerView.setYOffset(yOffset: yoffset);
+                }
+                
+                if markerObj["padding"].exists() {
+                    let paddingVal = (CGFloat)(markerObj["padding"].intValue)
+                    markerView.setPadding(paddingVal: paddingVal)
+                }
+                
+                if markerObj["textStructure"].exists() {
+                    let textStructure = markerObj["textStructure"].stringValue
+                    markerView.setTextStructure(textStructure: textStructure)
+                }
+                
+                if markerObj["borderRadius"].exists() {
+                    let borderRadius = CGFloat(markerObj["borderRadius"].floatValue)
+                    markerView.setBorderRadius(borderRadius: borderRadius)
+                }
+            }
+            
+            self.marker = markerView;
+        }
+    }
+    
     func setChartViewBaseProps(_ config: String!) {
         var legendColors: [UIColor] = ChartColorTemplates.colorful();
         var legendLabels: [String] = [];
@@ -23,6 +139,8 @@ extension ChartViewBase {
         if let data = config.data(using: String.Encoding.utf8) {
             json = JSON(data: data);
         };
+        
+        setMarkerViewProps(json: json);
 
         if json["backgroundColor"].exists() {
             self.backgroundColor = RCTConvert.uiColor(json["backgroundColor"].intValue);
@@ -93,32 +211,6 @@ extension ChartViewBase {
             default:
                 break;
             }
-        }
-
-        if json["drawMarkers"].exists() {
-            self.drawMarkers = json["drawMarkers"].boolValue;
-        }
-
-        if json["marker"].exists() {
-            var markerFont = UIFont.systemFontOfSize(12.0);
-
-            if json["marker"]["markerFontSize"].exists() {
-                markerFont = markerFont.fontWithSize(CGFloat(json["marker"]["markerFontSize"].floatValue));
-            }
-
-            if json["marker"]["markerFontName"].exists() {
-                markerFont = UIFont(
-                  name: json["marker"]["markerFontName"].stringValue,
-                  size: markerFont.pointSize
-                )!;
-            }
-
-            self.marker = BalloonMarker(
-              color: RCTConvert.UIColor(json["marker"]["markerColor"].intValue),
-              font: markerFont,
-              textColor: RCTConvert.UIColor(json["marker"]["markerTextColor"].intValue),
-              insets: UIEdgeInsetsMake(8.0, 8.0, 20.0, 8.0)
-            )
         }
 
         if json["showLegend"].exists() {
