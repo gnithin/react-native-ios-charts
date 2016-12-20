@@ -193,7 +193,15 @@ public class BalloonMarker: ChartMarker
     
     public override func refreshContent(entry: ChartDataEntry, highlight: ChartHighlight)
     {
-        var label = entry.value.description
+        var label = "";
+        if(entry.data != nil){
+            label = (entry.data?.description)!;
+        }
+        
+        if label == "" {
+            label = entry.value.description;
+        }
+        
         label = self.textStructure.replacingOccurrences(of: "{}", with: label)
         
         labelns = label as NSString

@@ -2,6 +2,7 @@ import React from 'react';
 
 export const commonDataSetProps = {
   values: React.PropTypes.arrayOf(React.PropTypes.number).isRequired,
+  displayData: React.PropTypes.arrayOf(React.PropTypes.string),
   label: React.PropTypes.string,
   colors: React.PropTypes.arrayOf(React.PropTypes.string),
   drawValues: React.PropTypes.bool,

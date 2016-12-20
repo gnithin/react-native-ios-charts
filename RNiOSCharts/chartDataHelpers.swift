@@ -27,10 +27,27 @@ func getLineData(_ labels: [String], json: JSON!) -> LineChartData {
         if tmp["values"].exists() {
             let values = tmp["values"].arrayValue.map({$0.doubleValue});
             let label = tmp["label"].exists() ? tmp["label"].stringValue : "";
+            
+            // This is basically a customization which separates the data points plotting the 
+            // graph to the ones that show up in the MarkerView.
+            var displayData:[String] = [];
+            for _ in 0..<values.count {
+                displayData.append("");
+            }
+            
+            if(tmp["displayData"].exists()){
+                let customDisplayData = tmp["displayData"].arrayValue;
+                for i in 0..<customDisplayData.count {
+                    if i < displayData.count{
+                        displayData[i] = customDisplayData[i].stringValue;
+                    }
+                }
+            }
+            
             var dataEntries: [ChartDataEntry] = [];
 
             for i in 0..<values.count {
-                let dataEntry = ChartDataEntry(value: values[i], xIndex: i);
+                let dataEntry = ChartDataEntry(value: values[i], xIndex: i, data:displayData[i]);
                 dataEntries.append(dataEntry);
             }
 
