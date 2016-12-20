@@ -35,6 +35,8 @@ public class BalloonMarker: ChartMarker
     private var angularOffset: CGFloat?
     private var textStructure: String = "{}"
     private var borderRadius: CGFloat = 0.0
+    private var borderColor: UIColor = UIColor.black;
+    private var borderWidth: CGFloat = 0.0;
     
     private var xOffset: CGFloat = 0.0;
     private var yOffset: CGFloat = 0.0;
@@ -56,34 +58,53 @@ public class BalloonMarker: ChartMarker
     }
     
     public override var size: CGSize { return _size; }
-    
+
     public override func draw(context: CGContext, point: CGPoint)
     {
         if labelns == nil { return }
         
         var updatedPoint = CGPoint(x: point.x, y: point.y)
         
+        // This is needed since context.height is in pixels
+        let scale :CGFloat = UIScreen.main.scale
+        let height: CGFloat = CGFloat(context.height)/scale
+        let width: CGFloat = CGFloat(context.width)/scale
+        
         if self.angularOffset != nil{
-            var posy: CGFloat = point.y
             var posx: CGFloat = point.x
+            var posy: CGFloat = point.y
             
-            let scale :CGFloat = UIScreen.main.scale
-
-            // This is needed since context.height is in pixels
-            let height: CGFloat = CGFloat(context.height)/scale
-            let width: CGFloat = CGFloat(context.width)/scale
-            
-            let midX: CGFloat = width/(2)
-            let midY: CGFloat = height/(2)
+            let midX: CGFloat = width/2
+            let midY: CGFloat = height/2
             
             let offset: CGFloat = self.angularOffset!
+            
             let ydiff: CGFloat = posy - midY
             let xdiff: CGFloat = posx - midX
             
             let slope: CGFloat = atan2(ydiff, xdiff)
             
-            posx += offset * cos(slope)
-            posy += offset * sin(slope)
+            let xDelta = offset * cos(slope);
+            let yDelta = offset * sin(slope);
+            
+            posx += xDelta;
+            posy += yDelta;
+            
+            // Now the correct point is decided. 
+            // But the rectangle will always be drawn from the top-left point.
+            // We want the markerView to move around as it's rotated.
+            // This block basically positions the xpos and ypos to match the 
+            // top-left point in the markerView.
+            if xdiff >= 0 && ydiff >= 0 {
+                // Nothing to modify here. It's the top left corner
+            } else if xdiff > 0 && ydiff < 0 {
+                posy -= _size.height
+            } else if xdiff < 0 && ydiff > 0 {
+                posx -= _size.width;
+            } else {
+                posx -= _size.width
+                posy -= _size.height
+            }
             
             updatedPoint = CGPoint(x: posx, y: posy)
         }else{
@@ -95,16 +116,64 @@ public class BalloonMarker: ChartMarker
         
         // This the draws the view at the point.
         var rect = CGRect(origin: updatedPoint, size: _size);
-        rect.origin.x -= _size.width/2.0
-        rect.origin.y -= _size.height
+        
+        var xVal = rect.origin.x;
+        var yVal = rect.origin.y;
+        
+        // These checks are performed to see if the markerView goes out of bounds.
+        // Depending on whether angular offsets are used, it varies slightly.
+        if xVal < 0{
+            xVal = self.xOffset + self.borderWidth;
+        }else if (xVal + _size.width) > width {
+            let totalMarkerWidth = xVal + _size.width + (2 * self.borderWidth);
+            if totalMarkerWidth > width {
+                if (self.angularOffset != nil){
+                    xVal -= (totalMarkerWidth - width)
+                }else{
+                    // Switching the axes for when the markerView goes outside bounds
+                    xVal = point.x - (self.xOffset + _size.width + (2 * self.borderWidth));
+                }
+            }
+        }
+        
+        if yVal < 0{
+            yVal = self.yOffset + self.borderWidth;
+        }else {
+            let totalMarkerHeight = yVal + _size.height + (2 * self.borderWidth);
+            if totalMarkerHeight > height{
+                if (self.angularOffset != nil){
+                    yVal -= (totalMarkerHeight - height);
+                } else {
+                    // Switching the axes for when the markerView goes outside bounds
+                    yVal = point.y - (self.yOffset + _size.height + (2 * self.borderWidth));
+                }
+            }
+        }
+        
+        rect.origin.x = xVal;
+        rect.origin.y = yVal;
         
         context.saveGState()
-        
         context.setFillColor((color?.cgColor)!)
         context.beginPath()
         
         context.move(to: CGPoint.init(x: rect.origin.x,
                                       y: rect.origin.y));
+        
+        // Drawing the border
+        if self.borderWidth > 0 {
+            context.setFillColor((self.borderColor.cgColor))
+            let borderRect = CGRect(
+                x: rect.origin.x - self.borderWidth,
+                y: rect.origin.y - self.borderWidth,
+                width: rect.width + (2 * self.borderWidth),
+                height: rect.height + (2 * self.borderWidth)
+            );
+            
+            (UIBezierPath.init(roundedRect: borderRect, cornerRadius: self.borderRadius)).fill()
+        }
+        
+        context.setFillColor((color?.cgColor)!)
         
         (UIBezierPath.init(roundedRect: rect, cornerRadius: self.borderRadius)).fill()
         
@@ -179,5 +248,13 @@ public class BalloonMarker: ChartMarker
     
     public func setBorderRadius(borderRadius: CGFloat){
         self.borderRadius = borderRadius;
+    }
+    
+    public func setBorderColor(borderColor: UIColor){
+        self.borderColor = borderColor;
+    }
+    
+    public func setBorderWidth(borderWidth: CGFloat){
+        self.borderWidth = borderWidth;
     }
 }

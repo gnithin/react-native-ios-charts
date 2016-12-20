@@ -122,6 +122,19 @@ extension ChartViewBase {
                     let borderRadius = CGFloat(markerObj["borderRadius"].floatValue)
                     markerView.setBorderRadius(borderRadius: borderRadius)
                 }
+                
+                if markerObj["borderColor"].exists() {
+                    let borderColorStr = markerObj["borderColor"].stringValue;
+                    let borderColor = UIColor(cgColor: ChartColorTemplates.colorFromString(borderColorStr).cgColor);
+                    
+                    markerView.setBorderColor(borderColor: borderColor);
+                }
+                
+                if markerObj["borderWidth"].exists() {
+                    let borderWidth = CGFloat(markerObj["borderWidth"].floatValue);
+                    
+                    markerView.setBorderWidth(borderWidth: borderWidth);
+                }
             }
             
             self.marker = markerView;

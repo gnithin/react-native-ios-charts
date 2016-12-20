@@ -147,6 +147,8 @@ For Pie chart - Add the following dict at root level of the config.
     'padding': 50,
     'textSize': 13,
     'borderRadius': 30,
+    'borderWidth': 5,
+    'borderColor': '#FF0000',
     # This applies to only system font. Use "font" for field for using custom fonts as show here - http://stackoverflow.com/a/14019467/1518924
     'setBold': true,      
     'setItalics': true
