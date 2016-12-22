@@ -16,6 +16,50 @@ let DEFAULT_MARKER_BG_COLOR: String = "#000000"
 let DEFAULT_MARKER_TEXT_COLOR: String = "#FFFFFF"
 
 extension ChartViewBase {
+    func setCustomHighlightViewProps(json: JSON){
+        if json["drawHighlightCircles"].exists(){
+            self.drawCustomHighlight = json["drawHighlightCircles"].boolValue
+        } else if json["highlightCircle"].exists(){
+            self.drawCustomHighlight = true;
+        }
+        
+        if self.drawCustomHighlight {
+            let customItem: HighlightIntersection = HighlightIntersection();
+            
+            if json["highlightCircle"].exists(){
+                let customViewObj = json["highlightCircle"];
+                
+                if customViewObj["outerColor"].exists(){
+                    let outerColor = customViewObj["outerColor"].stringValue
+                    customItem.setHighlightCircleColor(highlightCircleColor: UIColor(cgColor: ChartColorTemplates.colorFromString(outerColor).cgColor))
+                }
+                
+                if customViewObj["innerColor"].exists(){
+                    let innerColor = customViewObj["innerColor"].stringValue
+                    customItem.setHighlightInnerCircleColor(highlightInnerCircleColor: UIColor(cgColor: ChartColorTemplates.colorFromString(innerColor).cgColor))
+                }
+                
+                if customViewObj["outerRadius"].exists(){
+                    let outerRadius = CGFloat(customViewObj["outerRadius"].floatValue)
+                    customItem.setHighlightCircleRadius(highlightCircleRadius: outerRadius)
+                }
+                
+                if customViewObj["innerRadius"].exists(){
+                    let innerRadius = CGFloat(customViewObj["innerRadius"].floatValue)
+                    customItem.setHighlightInnerCircleRadius(highlightInnerCircleRadius: innerRadius)
+                }
+                
+                if customViewObj["dynChangeHighlightColor"].exists(){
+                    let dynColorChange = customViewObj["dynChangeHighlightColor"].boolValue
+                    customItem.setDynChangeHighlightColor(dynChangeHighlightColor: dynColorChange)
+                }
+            }
+            
+            self.customHightlightItem = customItem
+        }
+    }
+    
+    
     func setMarkerViewProps(json:JSON){
         let isMarkerPropExists = json["marker"].exists()
         
@@ -154,6 +198,8 @@ extension ChartViewBase {
         };
         
         setMarkerViewProps(json: json);
+        
+        setCustomHighlightViewProps(json: json);
 
         if json["backgroundColor"].exists() {
             self.backgroundColor = RCTConvert.uiColor(json["backgroundColor"].intValue);
