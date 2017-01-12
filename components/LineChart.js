@@ -23,9 +23,31 @@ class LineChart extends Component {
   setVisibleXRangeMaximum(value) {
     RNLineChartManager.setVisibleXRangeMaximum(findNodeHandle(this), value);
   }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    // NOTE - Never update the line chart. It will render the whole graph again,
+    // thus breaking the customHighlightVal logic flow.
+    // Currently, there is never a use-case to do so.
+    // If there is ever a case, make sure to put the logic for customHighlightVal 
+    // in an else and return false.
+    
+    // Getting the customValue here.
+    if(typeof nextProps.customHighlightVal !== "undefined"){
+      let hVal = parseInt(nextProps.customHighlightVal);
+
+      if(!isNaN(hVal) && hVal >= 0){
+        // Calling the native module here.
+        RNLineChartManager.customHighlightVal(findNodeHandle(this), hVal); 
+      }
+    }
+
+    return false;
+  }
+  
   render() {
     let { config, ...otherProps } = this.props;
     config = JSON.stringify(processColors(config));
+
     return <RNLineChart config={config} {...otherProps} />;
   }
 }

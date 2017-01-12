@@ -54,7 +54,8 @@ class RNPieChart : PieChartView {
     }
     
     if json["holeColor"].exists() {
-      self.holeColor = RCTConvert.uiColor(json["holeColor"].intValue);
+      let holeColorStr = json["holeColor"].stringValue;
+      self.holeColor = NSUIColor(cgColor: ChartColorTemplates.colorFromString(holeColorStr).cgColor)
     }
     
     if json["drawHoleEnabled"].exists() {
@@ -63,6 +64,24 @@ class RNPieChart : PieChartView {
 
     if json["centerText"].exists() {
       self.centerText = json["centerText"].stringValue;
+    }
+    
+    if json["centerTextColor"].exists() {
+      let centerTextColorStr = json["centerTextColor"].stringValue;
+      
+      var attrString: NSMutableAttributedString?
+      let paragraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+      paragraphStyle.lineBreakMode = NSLineBreakMode.byTruncatingTail
+      paragraphStyle.alignment = .center
+      
+      attrString = NSMutableAttributedString(string: self.centerText!)
+      attrString?.setAttributes([
+        NSForegroundColorAttributeName: NSUIColor(cgColor: ChartColorTemplates.colorFromString(centerTextColorStr).cgColor),
+        NSFontAttributeName: NSUIFont.systemFont(ofSize: 12.0),
+        ], range: NSMakeRange(0, attrString!.length))
+      
+      self.centerAttributedText = attrString;
+      
     }
 
     if json["drawCenterTextEnabled"].exists() {

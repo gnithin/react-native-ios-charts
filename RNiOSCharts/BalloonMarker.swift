@@ -37,7 +37,11 @@ public class BalloonMarker: ChartMarker
     private var borderRadius: CGFloat = 0.0
     private var borderColor: UIColor = UIColor.black;
     private var borderWidth: CGFloat = 0.0;
-    
+    private var shadowWidth: CGFloat = 0;
+    private var shadowHeight: CGFloat = 0;
+    private var shadowBlurRadius: CGFloat = 1;
+    private var shadowColor: UIColor = UIColor.black;
+  
     private var xOffset: CGFloat = 0.0;
     private var yOffset: CGFloat = 0.0;
     
@@ -175,7 +179,19 @@ public class BalloonMarker: ChartMarker
         
         context.setFillColor((color?.cgColor)!)
         
-        (UIBezierPath.init(roundedRect: rect, cornerRadius: self.borderRadius)).fill()
+        let isShadow:Bool = (self.shadowHeight != 0.0 && self.shadowWidth != 0.0);
+        if isShadow {
+            // Need to save state before setting the shadow
+            context.saveGState()
+            
+            context.setShadow(offset: CGSize(width: self.shadowWidth, height: shadowHeight), blur: self.shadowBlurRadius);
+            
+            (UIBezierPath.init(roundedRect: rect, cornerRadius: self.borderRadius)).fill()
+            
+            context.restoreGState()
+        } else{
+            (UIBezierPath.init(roundedRect: rect, cornerRadius: self.borderRadius)).fill()
+        }
         
         context.fillPath()
         
@@ -264,5 +280,17 @@ public class BalloonMarker: ChartMarker
     
     public func setBorderWidth(borderWidth: CGFloat){
         self.borderWidth = borderWidth;
+    }
+    
+    public func setShadowWidth(shadowWidth: CGFloat){
+        self.shadowWidth = shadowWidth;
+    }
+    
+    public func setShadowHeight(shadowHeight: CGFloat){
+        self.shadowHeight = shadowHeight;
+    }
+    
+    public func setShadowBlurRadius(shadowBlurRadius: CGFloat){
+        self.shadowBlurRadius = shadowBlurRadius;
     }
 }

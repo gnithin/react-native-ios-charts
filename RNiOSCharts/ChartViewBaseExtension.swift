@@ -179,6 +179,22 @@ extension ChartViewBase {
                     
                     markerView.setBorderWidth(borderWidth: borderWidth);
                 }
+                
+                if markerObj["shadow"].exists() {
+                    let shadowObj = markerObj["shadow"];
+                    
+                    if shadowObj["height"].exists() {
+                        markerView.setShadowHeight(shadowHeight: CGFloat(shadowObj["height"].floatValue));
+                    }
+                    
+                    if shadowObj["width"].exists() {
+                        markerView.setShadowWidth(shadowWidth: CGFloat(shadowObj["width"].floatValue));
+                    }
+                    
+                    if shadowObj["blurRadius"].exists() {
+                        markerView.setShadowHeight(shadowHeight: CGFloat(shadowObj["height"].floatValue));
+                    }
+                }
             }
             
             self.marker = markerView;

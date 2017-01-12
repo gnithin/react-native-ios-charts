@@ -20,4 +20,13 @@ class RNLineChartManager : RCTViewManager {
             view.setVisibleXRangeMaximum(value);
         }
     }
+  
+    @objc func customHighlightVal(_ reactTag: NSNumber, value: CGFloat) {
+      self.bridge!.uiManager.addUIBlock { (uiManager: RCTUIManager?, viewRegistry:[NSNumber : UIView]?) in
+        let view: RNLineChart = viewRegistry![reactTag] as! RNLineChart;
+        
+        // Need to send the actual value to the highlights
+        view.customHighlightVal(value);
+      }
+    }
 }

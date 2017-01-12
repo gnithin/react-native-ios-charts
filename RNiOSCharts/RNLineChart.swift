@@ -49,4 +49,13 @@ class RNLineChart : LineChartView {
             self.leftAxis.startAtZeroEnabled = json["leftAxis"]["startAtZero"].boolValue;
         }
     }
+  
+    func customHighlightVal (_ value: CGFloat){
+      // Only highlight if something is already highlighted.
+      let xVal = Int(value);
+
+      if (self.highlighted.count > 0 && xVal >= 0){
+          self.highlightValue(ChartHighlight(xIndex: (self.lastHighlighted?.xIndex)!, dataSetIndex: Int(value)))
+      }
+    }
 }

@@ -13,5 +13,6 @@
 
 RCT_EXPORT_VIEW_PROPERTY(config, NSString);
 RCT_EXTERN_METHOD(setVisibleXRangeMaximum:(nonnull NSNumber *)reactTag value:(CGFloat *)v);
+RCT_EXTERN_METHOD(customHighlightVal:(nonnull NSNumber *)reactTag value:(CGFloat *)v);
 
 @end
