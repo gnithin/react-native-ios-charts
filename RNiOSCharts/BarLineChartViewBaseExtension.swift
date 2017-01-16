@@ -664,6 +664,10 @@ extension BarLineChartViewBase {
                     self.leftAxis.valueFormatter = ABNumberFormatter(minimumDecimalPlaces: minimumDecimalPlaces, maximumDecimalPlaces: maximumDecimalPlaces);
                     self.rightAxis.valueFormatter = ABNumberFormatter(minimumDecimalPlaces: minimumDecimalPlaces, maximumDecimalPlaces: maximumDecimalPlaces);
                     break;
+                case "custom":
+                    self.leftAxis.valueFormatter = CustomNumberFormatter();
+                    self.rightAxis.valueFormatter = CustomNumberFormatter();
+                    break;
                 default:
                     self.leftAxis.valueFormatter = NumberFormatter();
                     self.rightAxis.valueFormatter = NumberFormatter();

@@ -117,7 +117,7 @@ export const globalCommonProps = {
     ])
   }),
   valueFormatter: React.PropTypes.shape({
-    type: React.PropTypes.oneOf(['regular', 'abbreviated']),
+    type: React.PropTypes.oneOf(['regular', 'abbreviated', 'custom']),
     minimumDecimalPlaces: React.PropTypes.number,
     maximumDecimalPlaces: React.PropTypes.number,
     numberStyle: React.PropTypes.oneOf([
